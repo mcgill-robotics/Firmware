@@ -1,0 +1,57 @@
+V-Tail mixer for PX4FMU
+==================================================
+
+This file defines mixers suitable for controlling a fixed wing aircraft with
+aileron, v-tail (rudder, elevator), and throttle using PX4FMU.
+
+The configuration assumes the aileron servos are connected to PX4FMU servo
+output 1, the tail servos to output 2 and 4, and the throttle to output 3.
+
+Inputs to the mixer come from channel group 0 (vehicle attitude), channels 0
+(roll), 1 (pitch), 2 (yaw) and 3 (thrust).
+
+
+Aileron Mixer (Roll)
+-----------------------------------------
+This mixer assumes that the aileron is connected to channel 0.
+This mixer assumes that the servos are connected together and are mirrored in
+direction.
+-----------------------------------------
+M: 1
+O:      10000  10000      0 -10000  10000
+S: 0 0  10000  10000      0 -10000  10000
+
+
+V-Tail Mixer Right (Pitch, yaw)
+-----------------------------------------
+This mixer assumes that the right tail servo is connected to main PWM output 2.
+This mixer assumes that the servo is mounted such that positive PWM command
+turns right tail wing up.
+-----------------------------------------
+M: 2
+O:      10000  10000      0 -10000  10000
+S: 0 1  -7000  -7000      0 -10000  10000
+S: 0 2  -7000  -7000      0 -10000  10000
+
+
+Motor Throttle Mixer
+-----------------------------------------
+This mixer assumes that the throttle is connected to main PWM output 3.
+This mixer generates a full-range output (-1 to 1) from an input in the (0 - 1)
+range. Inputs below zero are treated as zero.
+-----------------------------------------
+M: 1
+O:      10000  10000      0 -10000  10000
+S: 0 3      0  20000 -10000 -10000  10000
+
+
+V-Tail Mixer left (Pitch, yaw)
+-----------------------------------------
+This mixer assumes that the left tail servo is connected to main PWM output 4.
+This mixer assumes that the servo are mounted such that positive PWM command
+turns left tail wing down.
+-----------------------------------------
+M: 2
+O:      10000  10000      0 -10000  10000
+S: 0 1   7000   7000      0 -10000  10000
+S: 0 2  -7000  -7000      0 -10000  10000
