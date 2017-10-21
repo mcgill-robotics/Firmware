@@ -1,0 +1,62 @@
+Anaconda mixer for PX4FMU
+==================================================================
+
+Assumes an aircraft with ailerons, an a-tail (left and right ruddervators),
+throttle, a front wheel, and unused flaps and slats.
+Assumes that a PX4FMU is used as autopilot.
+
+
+Aileron Mixer (Roll).
+------------------------------------------------------------------
+Assumes that both ailerons servos are connected to output 1 through a y-connector and that both servos are mirrored in direction.
+------------------------------------------------------------------
+M: 1
+O:     10000 10000      0 -10000 10000
+S: 0 0 10000 10000      0 -10000 10000
+
+
+A-tail Mixer Right (Pitch, Yaw).
+------------------------------------------------------------------
+Assumes that the right tail servo is connected to output 2.
+------------------------------------------------------------------
+M: 2
+O:     10000 10000 0 -10000 10000
+S: 0 1 -7000 -7000 0 -10000 10000
+S: 0 2 -7000 -7000 0 -10000 10000
+
+
+Throttle Mixer (Thrust).
+------------------------------------------------------------------
+Assumes that the throttle (motor) is connected to output 3.
+------------------------------------------------------------------
+M: 1
+O:     10000 10000      0 -10000 10000
+S: 0 3     0 20000 -10000 -10000 10000
+
+
+A-Tail Mixer left (Pitch, Yaw).
+------------------------------------------------------------------
+Assumes that the left tail servo is connected to output 4.
+------------------------------------------------------------------
+M: 2
+O:      10000  10000 0 -10000  10000
+S: 0 1   7000   7000 0 -10000  10000
+S: 0 2  -7000  -7000 0 -10000  10000
+
+
+Wheel Mixer (front wheel).
+------------------------------------------------------------------
+Assumes that the front wheel is connected to output 5.
+------------------------------------------------------------------
+M: 1
+O:      10000  10000      0 -10000 10000
+S: 0 2 -10000 -10000      0 -10000 10000
+
+
+Flaps and Slats Mixer
+------------------------------------------------------------------
+Assumes that all flaps and slats are connected to output 6.
+------------------------------------------------------------------
+M: 1
+O:     10000 10000      0 -10000 10000
+S: 0 4     0 20000 -10000 -10000 10000
