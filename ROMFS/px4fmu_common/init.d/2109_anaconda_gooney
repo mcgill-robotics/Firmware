@@ -1,0 +1,29 @@
+#!nsh
+#
+# @name Anaconda Gooney
+#
+# @type Plane A-Tail
+# @class Plane
+#
+# @output MAIN1 aileron
+# @output MAIN2 v-tail right
+# @output MAIN3 v-tail left
+# @output MAIN4 throttle
+# @output MAIN5 wheel
+# @output MAIN6 flaps and slats
+#
+# @maintainer McGill Robotics <dev@mcgillrobotics.com>
+#
+
+sh /etc/init.d/rc.fw_defaults
+
+if [ $AUTOCNF == yes ]
+then
+fi
+
+# Mixer defined in ROMFS/px4fmu_common/mixers/
+set MIXER anaconda_gooney
+
+# Use PWM parameters for throlle channel.
+set PWM_OUT 3
+set PWM_DISARMED 900
