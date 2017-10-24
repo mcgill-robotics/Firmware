@@ -17,22 +17,22 @@ sh /etc/init.d/rc.fw_defaults
 
 if [ $AUTOCNF == yes ]
 then
-    FW_LAN_ANG 7.0
-    FW_LND_FL_PMAX 10.0
-    FW_LND_FL_PMIN 0.0
-    FW_THR_IDLE 0.0
-    FW_T_HRATE_FF 0.80
-    LNDFW_VELI_MAX 10.0
-    LNDFW_VEL_XY_MAX 10.0
+    param set FW_LAN_ANG 7.0
+    param set FW_LND_FL_PMAX 10.0
+    param set FW_LND_FL_PMIN 0.0
+    param set FW_THR_IDLE 0.0
+    param set FW_T_HRATE_FF 0.80
+    param set LNDFW_VELI_MAX 10.0
+    param set LNDFW_VEL_XY_MAX 10.0
 
-    PWM_AUX_MAX 2100
-    PWM_AUX_MIN 900
+    param set PWM_AUX_MAX 2100
+    param set PWM_AUX_MIN 900
 
-    RTL_DESCEND_ALT 50.0
-    RTL_RETURN_ALT 50.0
+    param set RTL_DESCEND_ALT 50.0
+    param set RTL_RETURN_ALT 50.0
 
-    RWTO_PSP 15.0
-    RWTO_TKOFF 1
+    param set RWTO_PSP 15.0
+    param set RWTO_TKOFF 1
 fi
 
 set MIXER vtail
