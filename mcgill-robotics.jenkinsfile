@@ -1,0 +1,58 @@
+pipeline {
+  agent any
+  environment {
+    CI = 'true'
+    PATH = "~/gcc-arm-none-eabi/bin:${PATH}"
+  }
+  stages {
+    stage('Setup') {
+      steps {
+        sh 'printenv'
+      }
+    }
+    stage('Build Firmware') {
+      steps {
+        sh 'make px4fmu-v3_default'
+        archiveArtifacts(artifacts: 'build/px4fmu-v3_default/*.px4', fingerprint: true)
+      }
+    }
+    stage('Build SITL') {
+      steps {
+        sh 'DONT_RUN=1 HEADLESS=1 make posix gazebo_plane'
+      }
+    }
+    stage('Sanity Check') {
+      parallel {
+        stage('Format') {
+          steps {
+            sh 'make check_format'
+          }
+        }
+      }
+    }
+    stage('Generate Metadata') {
+      parallel {
+        stage('Airframe') {
+          steps {
+            sh 'make airframe_metadata'
+            archiveArtifacts(artifacts: 'airframes.md, airframes.xml', fingerprint: true)
+          }
+        }
+        stage('Parameters') {
+          steps {
+            sh 'make parameters_metadata'
+            archiveArtifacts(artifacts: 'parameters.md, parameters.xml', fingerprint: true)
+          }
+        }
+      }
+    }
+    stage('Upload') {
+      when {
+        branch 'master'
+      }
+      steps {
+        sh 'cp -f airframes.xml parameters.xml /var/www/html/generated/'
+      }
+    }
+  }
+}
