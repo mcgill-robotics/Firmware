@@ -259,6 +259,7 @@ private:
 	enum FW_POSCTRL_MODE {
 		FW_POSCTRL_MODE_AUTO,
 		FW_POSCTRL_MODE_POSITION,
+		FW_POSCTRL_MODE_OFFBOARD_ALTITUDE,
 		FW_POSCTRL_MODE_ALTITUDE,
 		FW_POSCTRL_MODE_OTHER
 	} _control_mode_current{FW_POSCTRL_MODE_OTHER};		///< used to check the mode in the last control loop iteration. Use to check if the last iteration was in the same mode.
@@ -439,6 +440,10 @@ private:
 
 	bool		control_position(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
 					 const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
+	void		control_takeoff(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
+					const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
+	void		control_landing(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
+					const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
 
 	float		get_tecs_pitch();
 	float		get_tecs_thrust();
