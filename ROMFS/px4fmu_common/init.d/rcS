@@ -522,60 +522,74 @@ else
 		fi
 	fi
 
-	#
-	# Configure vehicle type specific parameters.
-	# Note: rc.vehicle_setup is the entry point for rc.interface,
-	#       rc.fw_apps, rc.mc_apps, rc.ugv_apps, and rc.vtol_apps.
-	#
-	sh /etc/init.d/rc.vehicle_setup
+if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 OMNIBUS_F4SD
+then
+# Check for flow sensor - as it is a background task, launch it last
+px4flow start &
+fi
 
-	#
-	# Start the navigator.
-	#
-	navigator start
+if ver hwcmp AEROFC_V1
+then
+# don't start mavlink ttyACM0 on aerofc_v1
+else
+# Start MAVLink
+mavlink start -r 800000 -d /dev/ttyACM0 -m config -x -f
+fi
 
-	#
-	# Start the standalone wind estimator.
-	#
-	if param compare WEST_EN 1
-	then
-		wind_estimator start
-	fi
+#
+# Configure vehicle type specific parameters.
+# Note: rc.vehicle_setup is the entry point for rc.interface,
+#       rc.fw_apps, rc.mc_apps, rc.ugv_apps, and rc.vtol_apps.
+#
+sh /etc/init.d/rc.vehicle_setup
 
-	#
-	# Start a thermal calibration if required.
-	#
-	sh /etc/init.d/rc.thermal_cal
+#
+# Start the navigator.
+#
+navigator start
 
-	#
-	# Start the logger.
-	#
-	sh /etc/init.d/rc.logging
+#
+# Start the standalone wind estimator.
+#
+if param compare WEST_EN 1
+then
+wind_estimator start
+fi
 
-	#
-	# Start vmount to control mounts such as gimbals, disabled by default.
-	#
-	if ! param compare MNT_MODE_IN -1
-	then
-		vmount start
-	fi
+#
+# Start a thermal calibration if required.
+#
+sh /etc/init.d/rc.thermal_cal
 
-	#
-	# Launch the flow sensor as a background task.
-	#
-	if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 OMNIBUS_F4SD
-	then
-		px4flow start &
-	fi
+#
+# Start the logger.
+#
+sh /etc/init.d/rc.logging
 
-	#
-	# Start any custom addons.
-	#
-	if [ -f $FEXTRAS ]
-	then
-		echo "Addons script: ${FEXTRAS}"
-		sh $FEXTRAS
-	fi
+#
+# Start vmount to control mounts such as gimbals, disabled by default.
+#
+if ! param compare MNT_MODE_IN -1
+then
+vmount start
+fi
+
+#
+# Launch the flow sensor as a background task.
+#
+if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 OMNIBUS_F4SD
+then
+px4flow start &
+fi
+
+#
+# Start any custom addons.
+#
+if [ -f $FEXTRAS ]
+then
+echo "Addons script: ${FEXTRAS}"
+sh $FEXTRAS
+fi
 #
 # End of autostart.
 #
