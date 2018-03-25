@@ -704,7 +704,7 @@ then
 		# don't start mavlink ttyACM0 on aerofc_v1
 	else
 		# Start MAVLink
-		mavlink start -r 800000 -d /dev/ttyACM0 -m config -x
+		mavlink start -r 800000 -d /dev/ttyACM0 -m config -x -f
 	fi
 
 	#
