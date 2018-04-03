@@ -39,6 +39,10 @@ if (NOT FW_NAME)
 	set(FW_NAME ${CONFIG}.elf)
 endif()
 
+if (DEFINED ENV{UPLOAD_FORCE})
+	set(UPLOAD_ARGS --force)
+endif()
+
 add_executable(${FW_NAME} ${PX4_SOURCE_DIR}/src/platforms/empty.c)
 add_dependencies(${FW_NAME} git_nuttx nuttx_build)
 
@@ -126,7 +130,7 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 
 	# upload helper
 	if (${BOARD} STREQUAL "aerofc-v1")
-		
+
 		add_custom_target(upload
 			COMMAND ${PX4_SOURCE_DIR}/Tools/aero_upload.sh ${fw_file}
 			DEPENDS ${fw_file}
@@ -158,7 +162,7 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 		px4_join(OUT serial_ports LIST "${serial_ports}" GLUE ",")
 		add_custom_target(upload
 			COMMAND ${PYTHON_EXECUTABLE}
-				${PX4_SOURCE_DIR}/Tools/px_uploader.py --port ${serial_ports} ${fw_file}
+				${PX4_SOURCE_DIR}/Tools/px_uploader.py ${UPLOAD_ARGS} --port ${serial_ports} ${fw_file}
 			DEPENDS ${fw_file}
 			COMMENT "uploading px4"
 			USES_TERMINAL
