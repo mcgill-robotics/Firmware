@@ -153,7 +153,6 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 		set(productstr_underscore)
 		string(REPLACE " " "_" vendorstr_underscore ${CONFIG_CDCACM_VENDORSTR})
 		string(REPLACE " " "_" productstr_underscore ${CONFIG_CDCACM_PRODUCTSTR})
-
 		set(serial_ports)
 		if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
 
