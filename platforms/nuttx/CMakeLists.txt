@@ -143,7 +143,7 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 
 	# upload helper
 	if (${BOARD} STREQUAL "aerofc-v1")
-		
+
 		add_custom_target(upload
 			COMMAND ${PX4_SOURCE_DIR}/Tools/aero_upload.sh ${fw_file}
 			DEPENDS ${fw_file}
@@ -175,7 +175,7 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 		px4_join(OUT serial_ports LIST "${serial_ports}" GLUE ",")
 		add_custom_target(upload
 			COMMAND ${PYTHON_EXECUTABLE}
-				${PX4_SOURCE_DIR}/Tools/px_uploader.py --port ${serial_ports} ${fw_file}
+				${PX4_SOURCE_DIR}/Tools/px_uploader.py --force --port ${serial_ports} ${fw_file}
 			DEPENDS ${fw_file}
 			COMMENT "uploading px4"
 			USES_TERMINAL
@@ -223,7 +223,7 @@ add_custom_target(debug
 	DEPENDS ${FW_NAME} ${CMAKE_CURRENT_BINARY_DIR}/.gdbinit
 	USES_TERMINAL
 	)
-	
+
 add_custom_target(profile
 	COMMAND ${PX4_SOURCE_DIR}/platforms/nuttx/Debug/poor-mans-profiler.sh --elf=$<TARGET_FILE:${FW_NAME}> --nsamples=10000
 	DEPENDS ${FW_NAME} ${PX4_SOURCE_DIR}/platforms/nuttx/Debug/poor-mans-profiler.sh
