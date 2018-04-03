@@ -148,8 +148,8 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 
 	# upload helper
 	if (${BOARD} STREQUAL "aerofc-v1")
-		
 		# TODO: should be set only in aero config
+
 		add_custom_target(upload
 			COMMAND ${PX4_SOURCE_DIR}/Tools/aero_upload.sh ${fw_file}
 			DEPENDS ${fw_file}
@@ -221,7 +221,6 @@ if (TARGET parameters_xml AND TARGET airframes_xml)
 				USES_TERMINAL
 				)
 		endif()
-
 	endif()
 endif()
 
