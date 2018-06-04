@@ -1126,22 +1126,43 @@ FixedwingPositionControl::control_position(const Vector2f &curr_pos, const Vecto
 		/* Offboard altitude mode, control on yaw rate with fixed altitude */
 		_control_mode_current = FW_POSCTRL_MODE_OFFBOARD_ALTITUDE;
 		_hold_alt = pos_sp_curr.z;
+		position_setpoint_s psp;
+		psp.alt = _hold_alt;
+		psp.lat = pos_sp_curr.y;
+		psp.lon = pos_sp_curr.x;
 
-		float airspeed = _parameters.airspeed_trim;
-		float throttle = _parameters.throttle_cruise;
-		float speed = _airspeed;
-		tecs_update_pitch_throttle(_hold_alt,
-					   calculate_target_airspeed(airspeed),
-					   radians(_parameters.pitch_limit_min) - _parameters.pitchsp_offset_rad,
-					   radians(_parameters.pitch_limit_max) - _parameters.pitchsp_offset_rad,
-					   _parameters.throttle_min,
-					   _parameters.throttle_max,
-					   throttle,
-					   false,
-					   radians(_parameters.pitch_limit_min));
-		// Calculate the bank angle needed to achieve the yaw rate
-		float roll_sp = atan2f(pos_sp_curr.yawspeed * speed, CONSTANTS_ONE_G);
-		_att_sp.roll_body = math::constrain(roll_sp, -_parameters.roll_limit, _parameters.roll_limit);
+		if (pos_sp_curr.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
+			control_landing(curr_pos, ground_speed, pos_sp_prev, psp);
+
+		} else if (pos_sp_curr.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF) {
+			control_takeoff(curr_pos, ground_speed, pos_sp_prev, psp);
+
+		} else {
+			float airspeed = _parameters.airspeed_trim;
+			float throttle = _parameters.throttle_cruise;
+			float speed = _airspeed;
+			tecs_update_pitch_throttle(_hold_alt,
+						   calculate_target_airspeed(airspeed),
+						   radians(_parameters.pitch_limit_min) - _parameters.pitchsp_offset_rad,
+						   radians(_parameters.pitch_limit_max) - _parameters.pitchsp_offset_rad,
+						   _parameters.throttle_min,
+						   _parameters.throttle_max,
+						   throttle,
+						   false,
+						   radians(_parameters.pitch_limit_min));
+			// Calculate the bank angle needed to achieve the yaw rate
+			float roll_sp = atan2f(pos_sp_curr.yawspeed * speed, CONSTANTS_ONE_G);
+			_att_sp.roll_body = math::constrain(roll_sp, -_parameters.roll_limit, _parameters.roll_limit);
+		}
+
+		/* reset takeoff/launch state */
+		if (pos_sp_curr.type != position_setpoint_s::SETPOINT_TYPE_LAND) {
+			reset_landing_state();
+		}
+
+		if (pos_sp_curr.type != position_setpoint_s::SETPOINT_TYPE_TAKEOFF) {
+			reset_takeoff_state();
+		}
 
 	} else if (_control_mode.flag_control_altitude_enabled) {
 		/* ALTITUDE CONTROL: pitch stick moves altitude setpoint, throttle stick sets airspeed */
@@ -1204,7 +1225,8 @@ FixedwingPositionControl::control_position(const Vector2f &curr_pos, const Vecto
 	}
 
 	/* Copy thrust output for publication */
-	if (_control_mode_current == FW_POSCTRL_MODE_AUTO && // launchdetector only available in auto
+	if ((_control_mode_current == FW_POSCTRL_MODE_AUTO || _control_mode_current == FW_POSCTRL_MODE_OFFBOARD_ALTITUDE)
+	    && // launchdetector only available in auto
 	    pos_sp_curr.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF &&
 	    _launch_detection_state != LAUNCHDETECTION_RES_DETECTED_ENABLEMOTORS &&
 	    !_runway_takeoff.runwayTakeoffEnabled()) {
@@ -1214,7 +1236,8 @@ FixedwingPositionControl::control_position(const Vector2f &curr_pos, const Vecto
 		   the pre-takeoff throttle and the idle throttle normally map to the same parameter. */
 		_att_sp.thrust_body[0] = _parameters.throttle_idle;
 
-	} else if (_control_mode_current == FW_POSCTRL_MODE_AUTO &&
+	} else if ((_control_mode_current == FW_POSCTRL_MODE_AUTO
+		    || _control_mode_current == FW_POSCTRL_MODE_OFFBOARD_ALTITUDE) &&
 		   pos_sp_curr.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF &&
 		   _runway_takeoff.runwayTakeoffEnabled()) {
 
@@ -1244,7 +1267,8 @@ FixedwingPositionControl::control_position(const Vector2f &curr_pos, const Vecto
 	bool use_tecs_pitch = true;
 
 	// auto runway takeoff
-	use_tecs_pitch &= !(_control_mode_current == FW_POSCTRL_MODE_AUTO &&
+	use_tecs_pitch &= !((_control_mode_current == FW_POSCTRL_MODE_AUTO
+			     || _control_mode_current == FW_POSCTRL_MODE_OFFBOARD_ALTITUDE) &&
 			    pos_sp_curr.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF &&
 			    (_launch_detection_state == LAUNCHDETECTION_RES_NONE || _runway_takeoff.runwayTakeoffEnabled()));
 
@@ -1326,6 +1350,8 @@ FixedwingPositionControl::control_takeoff(const Vector2f &curr_pos, const Vector
 
 		// update tecs
 		const float takeoff_pitch_max_deg = _runway_takeoff.getMaxPitch(_parameters.pitch_limit_max);
+		const float takeoff_pitch_min_deg = _runway_takeoff.getMinPitch(pos_sp_curr.pitch_min, 10.0f,
+						    _parameters.pitch_limit_min);
 
 		tecs_update_pitch_throttle(pos_sp_curr.alt,
 					   calculate_target_airspeed(_runway_takeoff.getMinAirspeedScaling() * _parameters.airspeed_min),
@@ -1335,14 +1361,15 @@ FixedwingPositionControl::control_takeoff(const Vector2f &curr_pos, const Vector
 					   _parameters.throttle_max, // XXX should we also set runway_takeoff_throttle here?
 					   _parameters.throttle_cruise,
 					   _runway_takeoff.climbout(),
-					   radians(_runway_takeoff.getMinPitch(pos_sp_curr.pitch_min, 10.0f, _parameters.pitch_limit_min)),
+					   radians(takeoff_pitch_min_deg),
 					   tecs_status_s::TECS_MODE_TAKEOFF);
 
+		float ppitch = get_tecs_pitch();
 		// assign values
 		_att_sp.roll_body = _runway_takeoff.getRoll(_l1_control.get_roll_setpoint());
 		_att_sp.yaw_body = _runway_takeoff.getYaw(_l1_control.nav_bearing());
 		_att_sp.fw_control_yaw = _runway_takeoff.controlYaw();
-		_att_sp.pitch_body = _runway_takeoff.getPitch(get_tecs_pitch());
+		_att_sp.pitch_body = _runway_takeoff.getPitch(ppitch);
 
 		// reset integrals except yaw (which also counts for the wheel controller)
 		_att_sp.roll_reset_integral = _runway_takeoff.resetIntegrators();
