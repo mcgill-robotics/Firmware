@@ -1041,6 +1041,7 @@ FixedwingAttitudeControl::task_main()
 						_yaw_ctrl.control_attitude(control_input); //runs last, because is depending on output of roll and pitch attitude
 						_wheel_ctrl.control_attitude(control_input);
 
+
 						/* Update input data for rate controllers */
 						control_input.roll_rate_setpoint = _roll_ctrl.get_desired_rate();
 						control_input.pitch_rate_setpoint = _pitch_ctrl.get_desired_rate();

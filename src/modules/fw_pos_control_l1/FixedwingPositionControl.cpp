@@ -1063,6 +1063,7 @@ FixedwingPositionControl::control_position(const math::Vector<2> &curr_pos, cons
 				if (!_runway_takeoff.isInitialized()) {
 					Eulerf euler(Quatf(_att.q));
 					_runway_takeoff.init(euler.psi(), _global_pos.lat, _global_pos.lon);
+          mavlink_log_critical(&_mavlink_log_pub, "runaway init: w %f x %f y %f z %f psi %f", (double)_att.q[0], (double)_att.q[1], (double)_att.q[2], (double)_att.q[3], (double)euler.psi());
 
 					/* need this already before takeoff is detected
 					 * doesn't matter if it gets reset when takeoff is detected eventually */
@@ -1490,6 +1491,7 @@ FixedwingPositionControl::handle_command()
 void
 FixedwingPositionControl::task_main()
 {
+  static size_t i = 0;
 	/*
 	 * do subscriptions
 	 */
@@ -1628,6 +1630,8 @@ FixedwingPositionControl::task_main()
 				q.copyTo(_att_sp.q_d);
 				_att_sp.q_d_valid = true;
 
+        if(i++ % 20 == 0)
+          mavlink_log_critical(&_mavlink_log_pub, "Before sending: r %f, p %f, y %f",(double)_att_sp.roll_body, (double)_att_sp.pitch_body, (double)_att_sp.yaw_body);
 				if (!_control_mode.flag_control_offboard_enabled ||
 				    _control_mode.flag_control_position_enabled ||
 				    _control_mode.flag_control_velocity_enabled ||
